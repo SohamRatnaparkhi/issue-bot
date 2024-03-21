@@ -61,12 +61,13 @@ async function run() {
             if (issueNumber == null) {
                 throw new Error('Issue number is not defined');
             }
-            octokit.rest.issues.createComment({
+            const res = await octokit.rest.issues.createComment({
                 owner: github_1.context.repo.owner,
                 repo: github_1.context.repo.repo,
                 issue_number: issueNumber,
                 body: `Hello @${commenterId}, you said: ${commentBody} on issue #${issueNumber}!`
             });
+            core.debug(`Response from creating comment: ${JSON.stringify(res)}`);
         }
     }
     catch (error) {

@@ -46,12 +46,13 @@ export async function run(): Promise<void> {
         throw new Error('Issue number is not defined')
       }
 
-      octokit.rest.issues.createComment({
+      const res = await octokit.rest.issues.createComment({
         owner: context.repo.owner,
         repo: context.repo.repo,
         issue_number: issueNumber,
         body: `Hello @${commenterId}, you said: ${commentBody} on issue #${issueNumber}!`
       })
+      core.debug(`Response from creating comment: ${JSON.stringify(res)}`)
     }
   } catch (error) {
     // Fail the workflow run if an error occurs
