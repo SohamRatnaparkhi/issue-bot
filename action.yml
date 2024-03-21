@@ -1,24 +1,41 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Issue-Assigner Bot'
+description:
+  'Automatically assigns issues to users based on issue comments and
+  configurable rules.'
+author: 'Soham Ratnaparkhi'
 
-# Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
   icon: 'heart'
   color: 'red'
 
-# Define your inputs here.
 inputs:
-  milliseconds:
-    description: 'Your input description here'
+  roles-config-inline:
+    description:
+      'Inline YAML string defining roles and rules. Will be used if config-path
+      is not provided.'
+    required: false
+  config-path:
+    description:
+      'Optional: Path to an external YAML configuration file defining roles,
+      rules, and states. Overrides roles-config-inline if provided.'
+    required: false
+    default: ''
+  issue-states-inline:
+    description:
+      'Inline YAML string defining the issue states and corresponding labels.'
     required: true
-    default: '1000'
+  maintainers-config:
+    description: 'Path to the maintainers configuration file.'
+    required: true
+    default: '.maintainers.yml'
+  gh-token:
+    description: 'GitHub token with permissions to manage issues and assignees.'
+    required: true
 
-# Define your outputs here.
 outputs:
-  time:
-    description: 'Your output description here'
+  assignment-status:
+    description: 'Status of the issue assignment process.'
 
 runs:
-  using: node20
-  main: dist/index.js
+  using: 'node20'
+  main: 'dist/index.js'

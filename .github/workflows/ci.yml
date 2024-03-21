@@ -49,16 +49,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: Test Local Action
-        id: test-action
-        uses: ./
+      - name: Install dependencies
+        run: npm install
+      - name: Assign Issue
+        uses: ./ # Path to your custom action
         with:
-          milliseconds: 2000
-
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
+          roles-config-inline: |
+            admin:
+              max-assigned-issues: 10
+              max-opened-prs: 5
+              unassign-others: true
+              allowed-issue-states: ready-for-assignment, assigned, in progress, in-review
+            maintainer:
+              max-assigned-issues: 5
+              max-opened-prs: 3
+              unassign-others: true
+              allowed-issue-states: ready-for-assignment, assigned, in progress, in-review
+            developer:
+              max-assigned-issues: 2
+              max-opened-prs: 1
+              unassign-others: false
+              allowed-issue-states: ready-for-assignment, assigned, in progress
+            default:
+              max-assigned-issues: 1
+              max-opened-prs: 0
+              unassign-others: false
+              allowed-issue-states: ready-for-assignment
+          issue-states-inline: |
+            ready-for-assignment: help-wanted
+            assigned: taken
+            in progress: worked-on
+            in-review: review
+            done: closed
+          maintainers-config: 'maintainers.yml'
+          gh-token: ${{ secrets.GITHUB_TOKEN }}
