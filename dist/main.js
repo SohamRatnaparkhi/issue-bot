@@ -22,11 +22,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.run = void 0;
 const core = __importStar(require("@actions/core"));
 const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
+const js_yaml_1 = __importDefault(require("js-yaml"));
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -61,12 +65,48 @@ async function run() {
             if (issueNumber == null) {
                 throw new Error('Issue number is not defined');
             }
-            octokit.rest.issues.createComment({
+            const res = await octokit.rest.issues.createComment({
                 owner: github_1.context.repo.owner,
                 repo: github_1.context.repo.repo,
                 issue_number: issueNumber,
                 body: `Hello @${commenterId}, you said: ${commentBody} on issue #${issueNumber}!`
             });
+            // get type of comment body followed by params
+            const commentBodyArgs = commentBody.split(' ');
+            const command = commentBodyArgs[0];
+            const participantAccountNames = commentBodyArgs.slice(1);
+            // check repo status using labels
+            const labels = await octokit.rest.issues.listLabelsOnIssue({
+                owner: github_1.context.repo.owner,
+                repo: github_1.context.repo.repo,
+                issue_number: issueNumber
+            });
+            const labelNames = labels.data.map(label => label.name);
+            // check if the issue has the right label
+            const issueStatesInLine = (0, core_1.getInput)('issue-states-inline');
+            // parse yaml string and convert to object
+            const issueStates = js_yaml_1.default.load(issueStatesInLine);
+            core.debug(`Issue states: ${JSON.stringify(issueStates)}`);
+            const exchangeKeyValueInObject = (obj) => {
+                const newObj = {};
+                for (const key in obj) {
+                    newObj[obj[key]] = key;
+                }
+                return newObj;
+            };
+            const issueStatesReverse = exchangeKeyValueInObject(issueStates);
+            core.debug(`Issue states reverse: ${JSON.stringify(issueStatesReverse)}`);
+            if (!labelNames.includes(issueStatesReverse['help-wanted'])) {
+                core.debug(`Issue #${issueNumber} does not have the right label`);
+            }
+            const roles = (0, core_1.getInput)('roles-config-inline');
+            const rolesConfig = js_yaml_1.default.load(roles);
+            core.debug(`Roles config: ${JSON.stringify(rolesConfig)}`);
+            // check for role
+            // check is user can be assigned
+            // assign user
+            // update label
+            core.debug(`Response from creating comment: ${JSON.stringify(res)}`);
         }
     }
     catch (error) {
