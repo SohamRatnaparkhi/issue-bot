@@ -54,6 +54,20 @@ async function run() {
         }
         console.log('octokit is here');
         core.debug('octokit is here');
+        if (github_1.context.eventName === 'issue_comment') {
+            const issueNumber = github_1.context.payload.issue?.number;
+            const commenterId = github_1.context.payload['comment']?.['user']?.['login'] ?? '';
+            const commentBody = github_1.context.payload['comment']?.['body'] ?? '';
+            if (issueNumber == null) {
+                throw new Error('Issue number is not defined');
+            }
+            octokit.rest.issues.createComment({
+                owner: github_1.context.repo.owner,
+                repo: github_1.context.repo.repo,
+                issue_number: issueNumber,
+                body: `Hello @${commenterId}, you said: ${commentBody} on issue #${issueNumber}!`
+            });
+        }
     }
     catch (error) {
         // Fail the workflow run if an error occurs
