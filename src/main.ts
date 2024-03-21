@@ -14,28 +14,26 @@ export async function run(): Promise<void> {
     // const ms: string = core.getInput('milliseconds')
 
     // // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    // core.debug(`Waiting ${ms} milliseconds ...`)
+    // console.log(`Waiting ${ms} milliseconds ...`)
 
     // // Log the current timestamp, wait, then log the new timestamp
-    // core.debug(new Date().toTimeString())
+    // console.log(new Date().toTimeString())
     // await wait(parseInt(ms, 10))
-    // core.debug(new Date().toTimeString())
+    // console.log(new Date().toTimeString())
 
     // // Set outputs for other workflow steps to use
     // core.setOutput('time', new Date().toTimeString())
 
     // Get the inputs from the workflow file
     console.log('staring the action')
-    core.debug('staring the action')
     const token = getInput('gh-token')
-    console.log(context)
 
     const octokit = getOctokit(token)
     if (octokit == null) {
       throw new Error('Unable to get octokit')
     }
     console.log('octokit is here')
-    core.debug('octokit is here')
+    console.log('octokit is here')
 
     if (context.eventName === 'issue_comment') {
       const issueNumber: number | undefined = context.payload.issue?.number
@@ -73,7 +71,7 @@ export async function run(): Promise<void> {
       // parse yaml string and convert to object
       const issueStates = jsYaml.load(issueStatesInLine) as Record<string, string>;
       
-      core.debug(`Issue states: ${JSON.stringify(issueStates)}`)
+      console.log(`Issue states: ${JSON.stringify(issueStates)}`)
 
       const exchangeKeyValueInObject = (obj: Record<string, string>) => {
         const newObj: Record<string, string> = {}
@@ -84,14 +82,14 @@ export async function run(): Promise<void> {
       }
 
       const issueStatesReverse = exchangeKeyValueInObject(issueStates)
-      core.debug(`Issue states reverse: ${JSON.stringify(issueStatesReverse)}`)
+      console.log(`Issue states reverse: ${JSON.stringify(issueStatesReverse)}`)
       if (!labelNames.includes(issueStatesReverse['help-wanted'])) {
-        core.debug(`Issue #${issueNumber} does not have the right label`)
+        console.log(`Issue #${issueNumber} does not have the right label`)
       }
 
       const roles = getInput('roles-config-inline');
       const rolesConfig = jsYaml.load(roles) as Record<string, string>;
-      core.debug(`Roles config: ${JSON.stringify(rolesConfig)}`);
+      console.log(`Roles config: ${JSON.stringify(rolesConfig)}`);
 
       // check for role
       // check is user can be assigned
@@ -99,7 +97,7 @@ export async function run(): Promise<void> {
 
       // update label
 
-      core.debug(`Response from creating comment: ${JSON.stringify(res)}`)
+      console.log(`Response from creating comment: ${JSON.stringify(res)}`)
     }
   } catch (error) {
     // Fail the workflow run if an error occurs
@@ -107,4 +105,4 @@ export async function run(): Promise<void> {
   }
 }
 
-export type Commands = 'assign' | 'unassign';
+export type Commands = '\\assign' | '\\unassign';

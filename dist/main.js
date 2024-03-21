@@ -40,24 +40,22 @@ async function run() {
     try {
         // const ms: string = core.getInput('milliseconds')
         // // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-        // core.debug(`Waiting ${ms} milliseconds ...`)
+        // console.log(`Waiting ${ms} milliseconds ...`)
         // // Log the current timestamp, wait, then log the new timestamp
-        // core.debug(new Date().toTimeString())
+        // console.log(new Date().toTimeString())
         // await wait(parseInt(ms, 10))
-        // core.debug(new Date().toTimeString())
+        // console.log(new Date().toTimeString())
         // // Set outputs for other workflow steps to use
         // core.setOutput('time', new Date().toTimeString())
         // Get the inputs from the workflow file
         console.log('staring the action');
-        core.debug('staring the action');
         const token = (0, core_1.getInput)('gh-token');
-        console.log(github_1.context);
         const octokit = (0, github_1.getOctokit)(token);
         if (octokit == null) {
             throw new Error('Unable to get octokit');
         }
         console.log('octokit is here');
-        core.debug('octokit is here');
+        console.log('octokit is here');
         if (github_1.context.eventName === 'issue_comment') {
             const issueNumber = github_1.context.payload.issue?.number;
             const commenterId = github_1.context.payload['comment']?.['user']?.['login'] ?? '';
@@ -86,7 +84,7 @@ async function run() {
             const issueStatesInLine = (0, core_1.getInput)('issue-states-inline');
             // parse yaml string and convert to object
             const issueStates = js_yaml_1.default.load(issueStatesInLine);
-            core.debug(`Issue states: ${JSON.stringify(issueStates)}`);
+            console.log(`Issue states: ${JSON.stringify(issueStates)}`);
             const exchangeKeyValueInObject = (obj) => {
                 const newObj = {};
                 for (const key in obj) {
@@ -95,18 +93,18 @@ async function run() {
                 return newObj;
             };
             const issueStatesReverse = exchangeKeyValueInObject(issueStates);
-            core.debug(`Issue states reverse: ${JSON.stringify(issueStatesReverse)}`);
+            console.log(`Issue states reverse: ${JSON.stringify(issueStatesReverse)}`);
             if (!labelNames.includes(issueStatesReverse['help-wanted'])) {
-                core.debug(`Issue #${issueNumber} does not have the right label`);
+                console.log(`Issue #${issueNumber} does not have the right label`);
             }
             const roles = (0, core_1.getInput)('roles-config-inline');
             const rolesConfig = js_yaml_1.default.load(roles);
-            core.debug(`Roles config: ${JSON.stringify(rolesConfig)}`);
+            console.log(`Roles config: ${JSON.stringify(rolesConfig)}`);
             // check for role
             // check is user can be assigned
             // assign user
             // update label
-            core.debug(`Response from creating comment: ${JSON.stringify(res)}`);
+            console.log(`Response from creating comment: ${JSON.stringify(res)}`);
         }
     }
     catch (error) {
