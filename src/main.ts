@@ -36,6 +36,23 @@ export async function run(): Promise<void> {
     }
     console.log('octokit is here')
     core.debug('octokit is here')
+
+    if (context.eventName === 'issue_comment') {
+      const issueNumber: number | undefined = context.payload.issue?.number
+      const commenterId: string = context.payload['comment']?.['user']?.['login'] ?? ''
+      const commentBody: string = context.payload['comment']?.['body'] ?? ''
+
+      if (issueNumber == null) {
+        throw new Error('Issue number is not defined')
+      }
+
+      octokit.rest.issues.createComment({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        issue_number: issueNumber,
+        body: `Hello @${commenterId}, you said: ${commentBody} on issue #${issueNumber}!`
+      })
+    }
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
