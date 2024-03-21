@@ -1,59 +1,19 @@
-name: Continuous Integration
+name: Issue Assignment Workflow
 
 on:
-  pull_request:
-    branches:
-      - main
-  push:
-    branches:
-      - main
-
-permissions:
-  contents: read
+  issue_comment:
+    types: [created]
 
 jobs:
-  # test-typescript:
-  #   name: TypeScript Tests
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #     - name: Checkout
-  #       id: checkout
-  #       uses: actions/checkout@v4
-
-  #     - name: Setup Node.js
-  #       id: setup-node
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version-file: .node-version
-  #         cache: npm
-
-  #     - name: Install Dependencies
-  #       id: npm-ci
-  #       run: npm ci
-
-  #     - name: Check Format
-  #       id: npm-format-check
-  #       run: npm run format:check
-
-  #     - name: Lint
-  #       id: npm-lint
-  #       run: npm run lint
-
-  #     - name: Test
-  #       id: npm-ci-test
-  #       run: npm run ci-test
-
-  test-action:
-    name: GitHub Actions Test
+  assign-issue:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Install dependencies
         run: npm install
+      
       - name: Assign Issue
         uses: ./ # Path to your custom action
         with:
@@ -62,22 +22,18 @@ jobs:
               max-assigned-issues: 10
               max-opened-prs: 5
               unassign-others: true
-              allowed-issue-states: ready-for-assignment, assigned, in progress, in-review
             maintainer:
               max-assigned-issues: 5
               max-opened-prs: 3
-              unassign-others: true
-              allowed-issue-states: ready-for-assignment, assigned, in progress, in-review
+              unassign-others: false
             developer:
               max-assigned-issues: 2
               max-opened-prs: 1
               unassign-others: false
-              allowed-issue-states: ready-for-assignment, assigned, in progress
             default:
               max-assigned-issues: 1
               max-opened-prs: 0
               unassign-others: false
-              allowed-issue-states: ready-for-assignment
           issue-states-inline: |
             ready-for-assignment: help-wanted
             assigned: taken
