@@ -7,7 +7,7 @@ import { context, getOctokit } from '@actions/github'
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 
-type GithubContext = typeof context
+// type GithubContext = typeof context
 
 export async function run(): Promise<void> {
   try {
@@ -24,20 +24,18 @@ export async function run(): Promise<void> {
     // // Set outputs for other workflow steps to use
     // core.setOutput('time', new Date().toTimeString())
 
-
-
     // Get the inputs from the workflow file
     console.log('staring the action')
     core.debug('staring the action')
     const token = getInput('gh-token')
-    console.log(context);
+    console.log(context)
 
     const octokit = getOctokit(token)
     if (octokit == null) {
       throw new Error('Unable to get octokit')
     }
-    console.log('octokit is here');
-    core.debug('octokit is here');
+    console.log('octokit is here')
+    core.debug('octokit is here')
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
