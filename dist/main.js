@@ -134,13 +134,19 @@ async function run() {
                 }
             }
             console.log(participantAccountNames);
-            const myRole = participantToRoles[labelNames[0].trim().substring(1)].toLowerCase();
+            const myRole = participantToRoles[participantAccountNames[0].trim().substring(1)].toLowerCase();
             // console.log(`Maintainers: ${JSON.stringify(parsedContent)}`)
             let myPermissions = rolesConfig[myRole];
             if (myPermissions == null) {
                 myPermissions = rolesConfig['default'];
             }
             console.log(`max issues: ${myPermissions['max-assigned-issues']}`);
+            octokit.rest.issues.addAssignees({
+                owner: github_1.context.repo.owner,
+                repo: github_1.context.repo.repo,
+                issue_number: issueNumber,
+                assignees: [participantAccountNames[0]]
+            });
             // check for role
             // check is user can be assigned
             // assign user
