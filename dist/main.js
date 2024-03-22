@@ -106,7 +106,18 @@ async function run() {
                 repo: github_1.context.repo.repo,
                 path: maintainerFilePath
             });
-            const fileContent = JSON.parse(data.toString());
+            const owner = github_1.context.repo.owner;
+            const repo = github_1.context.repo.repo;
+            const path = maintainerFilePath;
+            const { data: data2 } = await octokit.request(`GET /repos/${owner}/${repo}/contents/${path}`, {
+                owner: owner,
+                repo: repo,
+                path: path,
+                headers: {
+                    'X-GitHub-Api-Version': '2022-11-28'
+                }
+            });
+            const fileContent = data2.content; // @ts-ignore 
             const decodedContent = atob(fileContent.content || "");
             console.log("Parsed content");
             console.log(decodedContent);

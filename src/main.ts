@@ -69,7 +69,7 @@ export async function run(): Promise<void> {
       const issueStatesInLine = getInput('issue-states-inline')
       // parse yaml string and convert to object
       const issueStates = jsYaml.load(issueStatesInLine) as Record<string, string>;
-      
+
       console.log(`Issue states: ${JSON.stringify(issueStates)}`)
 
       const exchangeKeyValueInObject = (obj: Record<string, string>) => {
@@ -92,13 +92,25 @@ export async function run(): Promise<void> {
 
       // get user role
       const maintainerFilePath = getInput('maintainers-config');
-      const {data} = await octokit.rest.repos.getContent({
+      const { data } = await octokit.rest.repos.getContent({
         owner: context.repo.owner,
         repo: context.repo.repo,
         path: maintainerFilePath
       })
 
-      const fileContent = JSON.parse(data.toString())
+      const owner = context.repo.owner;
+      const repo = context.repo.repo;
+      const path = maintainerFilePath;
+      const { data: data2 } = await octokit.request(`GET /repos/${owner}/${repo}/contents/${path}`, {
+        owner: owner,
+        repo: repo,
+        path: path,
+        headers: {
+          'X-GitHub-Api-Version': '2022-11-28'
+        }
+      })
+
+      const fileContent = data2.content // @ts-ignore 
       const decodedContent = atob(fileContent.content || "")
       console.log("Parsed content")
       console.log(decodedContent)
