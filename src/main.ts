@@ -115,7 +115,7 @@ export async function run(): Promise<void> {
 
       const fileContent = data2.content // @ts-ignore 
       console.log(fileContent)
-      const decodedContent = Buffer.from(fileContent).toString("binary")
+      const decodedContent = Buffer.from(fileContent, "base64").toString("binary")
       console.log("Parsed content")
       console.log(decodedContent)
       const parsedContent = jsYaml.load(decodedContent) as Record<string, string>
