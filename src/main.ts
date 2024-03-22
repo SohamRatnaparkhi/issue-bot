@@ -131,9 +131,9 @@ export async function run(): Promise<void> {
 
       console.log(participantAccountNames)
 
-      const myRole = participantToRoles[participantAccountNames[0].trim().substring(1)].toLowerCase();
+      const myRole = participantToRoles[participantAccountNames[0].trim().substring(1)];
       // console.log(`Maintainers: ${JSON.stringify(parsedContent)}`)
-
+      console.log(`My role: ${myRole}`)
       let myPermissions = rolesConfig[myRole];
 
       if (myPermissions == null) {
