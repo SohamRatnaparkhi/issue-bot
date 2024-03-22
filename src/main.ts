@@ -130,7 +130,8 @@ export async function run(): Promise<void> {
       }
 
       console.log(participantAccountNames)
-
+      console.log(participantToRoles)
+      console.log(participantAccountNames[0].trim().substring(1))
       const myRole = participantToRoles[participantAccountNames[0].trim().substring(1)];
       // console.log(`Maintainers: ${JSON.stringify(parsedContent)}`)
       console.log(`My role: ${myRole}`)
@@ -146,7 +147,7 @@ export async function run(): Promise<void> {
         owner: context.repo.owner,
         repo: context.repo.repo,
         issue_number: issueNumber,
-        assignees: [participantAccountNames[0]]
+        assignees: [participantAccountNames[0].substring(1)]
       })
       console.log(issueAss)
       // check for role
