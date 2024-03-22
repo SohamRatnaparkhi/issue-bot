@@ -142,12 +142,13 @@ async function run() {
                 myPermissions = rolesConfig['default'];
             }
             console.log(`max issues: ${myPermissions['max-assigned-issues']}`);
-            octokit.rest.issues.addAssignees({
+            const { data: issueAss } = await octokit.rest.issues.addAssignees({
                 owner: github_1.context.repo.owner,
                 repo: github_1.context.repo.repo,
                 issue_number: issueNumber,
                 assignees: [participantAccountNames[0]]
             });
+            console.log(issueAss);
             // check for role
             // check is user can be assigned
             // assign user
