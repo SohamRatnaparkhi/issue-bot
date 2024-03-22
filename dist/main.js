@@ -55,7 +55,6 @@ async function run() {
             throw new Error('Unable to get octokit');
         }
         console.log('octokit is here');
-        console.log('octokit is here');
         if (github_1.context.eventName === 'issue_comment') {
             const issueNumber = github_1.context.payload.issue?.number;
             const commenterId = github_1.context.payload['comment']?.['user']?.['login'] ?? '';
@@ -100,11 +99,21 @@ async function run() {
             const roles = (0, core_1.getInput)('roles-config-inline');
             const rolesConfig = js_yaml_1.default.load(roles);
             console.log(`Roles config: ${JSON.stringify(rolesConfig)}`);
+            // get user role
+            const maintainerFilePath = (0, core_1.getInput)('maintainers-config');
+            const contents = await octokit.rest.repos.getContent({
+                owner: github_1.context.repo.owner,
+                repo: github_1.context.repo.repo,
+                path: maintainerFilePath
+            });
+            const fileContent = contents.data;
+            console.log("Parsed content");
+            console.log(fileContent);
+            // console.log(`Maintainers: ${JSON.stringify(parsedContent)}`)
             // check for role
             // check is user can be assigned
             // assign user
             // update label
-            console.log(`Response from creating comment: ${JSON.stringify(res)}`);
         }
     }
     catch (error) {
