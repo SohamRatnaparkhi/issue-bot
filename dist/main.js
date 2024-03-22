@@ -72,6 +72,8 @@ async function run() {
             const commentBodyArgs = commentBody.split(' ');
             const command = commentBodyArgs[0];
             const participantAccountNames = commentBodyArgs.slice(1);
+            console.log(command);
+            console.log(participantAccountNames);
             // check repo status using labels
             const labels = await octokit.rest.issues.listLabelsOnIssue({
                 owner: github_1.context.repo.owner,
@@ -118,6 +120,7 @@ async function run() {
                 }
             });
             const fileContent = data2.content; // @ts-ignore 
+            console.log(fileContent);
             const decodedContent = atob(fileContent.content || "");
             console.log("Parsed content");
             console.log(decodedContent);

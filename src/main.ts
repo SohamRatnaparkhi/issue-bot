@@ -55,6 +55,9 @@ export async function run(): Promise<void> {
       const command = commentBodyArgs[0] as Commands
       const participantAccountNames = commentBodyArgs.slice(1);
 
+      console.log(command);
+      console.log(participantAccountNames)
+
       // check repo status using labels
 
       const labels = await octokit.rest.issues.listLabelsOnIssue({
@@ -111,6 +114,7 @@ export async function run(): Promise<void> {
       })
 
       const fileContent = data2.content // @ts-ignore 
+      console.log(fileContent)
       const decodedContent = atob(fileContent.content || "")
       console.log("Parsed content")
       console.log(decodedContent)
