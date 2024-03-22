@@ -27,7 +27,7 @@ inputs:
   maintainers-config:
     description: 'Path to the maintainers configuration file.'
     required: true
-    default: '.maintainers.yml'
+    default: 'maintainers.yml'
   gh-token:
     description: 'GitHub token with permissions to manage issues and assignees.'
     required: true
