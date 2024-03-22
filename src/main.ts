@@ -33,7 +33,6 @@ export async function run(): Promise<void> {
       throw new Error('Unable to get octokit')
     }
     console.log('octokit is here')
-    console.log('octokit is here')
 
     if (context.eventName === 'issue_comment') {
       const issueNumber: number | undefined = context.payload.issue?.number
@@ -88,8 +87,21 @@ export async function run(): Promise<void> {
       }
 
       const roles = getInput('roles-config-inline');
-      const rolesConfig = jsYaml.load(roles) as Record<string, string>;
+      const rolesConfig = jsYaml.load(roles) as Record<string, RoleOptions>;
       console.log(`Roles config: ${JSON.stringify(rolesConfig)}`);
+
+      // get user role
+      const maintainerFilePath = getInput('maintainers-config');
+      const contents = await octokit.rest.repos.getContent({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        path: maintainerFilePath
+      })
+
+      const fileContent = contents.data
+      console.log("Parsed content")
+      console.log(fileContent)
+      // console.log(`Maintainers: ${JSON.stringify(parsedContent)}`)
 
       // check for role
       // check is user can be assigned
@@ -97,12 +109,17 @@ export async function run(): Promise<void> {
 
       // update label
 
-      console.log(`Response from creating comment: ${JSON.stringify(res)}`)
     }
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
   }
 }
-
 export type Commands = '\\assign' | '\\unassign';
+
+export type RoleOptions = {
+  "max-assigned-issues": number,
+  "max-opened-issues": number,
+  "unassign-others": boolean,
+  "allowed-labels"?: string[],
+}
