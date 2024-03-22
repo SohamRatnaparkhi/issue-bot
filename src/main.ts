@@ -118,7 +118,7 @@ export async function run(): Promise<void> {
       const decodedContent = Buffer.from(fileContent).toString("binary")
       console.log("Parsed content")
       console.log(decodedContent)
-      const parsedContent = jsYaml.load(decodedContent)
+      const parsedContent = jsYaml.load(decodedContent) as Record<string, string>
       console.log(parsedContent)
       // console.log(`Maintainers: ${JSON.stringify(parsedContent)}`)
 
