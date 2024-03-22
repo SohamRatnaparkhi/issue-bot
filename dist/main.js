@@ -126,7 +126,21 @@ async function run() {
             console.log(decodedContent);
             const parsedContent = js_yaml_1.default.load(decodedContent);
             console.log(parsedContent);
+            const participantToRoles = {};
+            for (const key in parsedContent) {
+                const val = parsedContent[key];
+                for (const vals in val) {
+                    participantToRoles[vals] = key;
+                }
+            }
+            console.log(participantAccountNames);
+            const myRole = participantToRoles[labelNames[0].trim().substring(1)].toLowerCase();
             // console.log(`Maintainers: ${JSON.stringify(parsedContent)}`)
+            let myPermissions = rolesConfig[myRole];
+            if (myPermissions == null) {
+                myPermissions = rolesConfig['default'];
+            }
+            console.log(`max issues: ${myPermissions['max-assigned-issues']}`);
             // check for role
             // check is user can be assigned
             // assign user

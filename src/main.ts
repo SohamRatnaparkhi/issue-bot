@@ -118,9 +118,29 @@ export async function run(): Promise<void> {
       const decodedContent = Buffer.from(fileContent, "base64").toString("binary")
       console.log("Parsed content")
       console.log(decodedContent)
-      const parsedContent = jsYaml.load(decodedContent) as Record<string, string>
+      const parsedContent = jsYaml.load(decodedContent) as Record<string, string[]>
       console.log(parsedContent)
+
+      const participantToRoles: {[key: string]: string} = {};
+      for (const key in parsedContent) {
+        const val = parsedContent[key]
+        for (const vals in val) {
+          participantToRoles[vals] = key;
+        }
+      }
+
+      console.log(participantAccountNames)
+
+      const myRole = participantToRoles[labelNames[0].trim().substring(1)].toLowerCase();
       // console.log(`Maintainers: ${JSON.stringify(parsedContent)}`)
+
+      let myPermissions = rolesConfig[myRole];
+
+      if (myPermissions == null) {
+        myPermissions = rolesConfig['default']
+      }
+
+      console.log(`max issues: ${myPermissions['max-assigned-issues']}`)
 
       // check for role
       // check is user can be assigned
