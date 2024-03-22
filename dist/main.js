@@ -101,14 +101,17 @@ async function run() {
             console.log(`Roles config: ${JSON.stringify(rolesConfig)}`);
             // get user role
             const maintainerFilePath = (0, core_1.getInput)('maintainers-config');
-            const contents = await octokit.rest.repos.getContent({
+            const { data } = await octokit.rest.repos.getContent({
                 owner: github_1.context.repo.owner,
                 repo: github_1.context.repo.repo,
                 path: maintainerFilePath
             });
-            const fileContent = contents.data;
+            const fileContent = JSON.parse(data.toString());
+            const decodedContent = atob(fileContent.content || "");
             console.log("Parsed content");
-            console.log(fileContent);
+            console.log(decodedContent);
+            const parsedContent = js_yaml_1.default.load(decodedContent);
+            console.log(parsedContent);
             // console.log(`Maintainers: ${JSON.stringify(parsedContent)}`)
             // check for role
             // check is user can be assigned

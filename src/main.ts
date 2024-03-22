@@ -92,15 +92,18 @@ export async function run(): Promise<void> {
 
       // get user role
       const maintainerFilePath = getInput('maintainers-config');
-      const contents = await octokit.rest.repos.getContent({
+      const {data} = await octokit.rest.repos.getContent({
         owner: context.repo.owner,
         repo: context.repo.repo,
         path: maintainerFilePath
       })
 
-      const fileContent = contents.data
+      const fileContent = JSON.parse(data.toString())
+      const decodedContent = atob(fileContent.content || "")
       console.log("Parsed content")
-      console.log(fileContent)
+      console.log(decodedContent)
+      const parsedContent = jsYaml.load(decodedContent)
+      console.log(parsedContent)
       // console.log(`Maintainers: ${JSON.stringify(parsedContent)}`)
 
       // check for role
