@@ -2,6 +2,7 @@ import * as core from '@actions/core';
 import { getInput } from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import jsYaml from 'js-yaml';
+import { assignIssue } from './helpers/role';
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -48,10 +49,16 @@ export async function run(): Promise<void> {
 
       // check repo status using labels
 
-      const labels = await octokit.rest.issues.listLabelsOnIssue({
+      const impDetails: FilteredContext = {
         owner: context.repo.owner,
         repo: context.repo.repo,
-        issue_number: issueNumber
+        issueNumber: issueNumber
+      }
+
+      const labels = await octokit.rest.issues.listLabelsOnIssue({
+        owner: impDetails.owner,
+        repo: impDetails.repo,
+        issue_number: impDetails.issueNumber
       })
 
       const labelNames = labels.data.map(label => label.name)
@@ -127,17 +134,15 @@ export async function run(): Promise<void> {
       console.log(`max issues: ${myPermissions['max-assigned-issues']}`)
       console.log(`max-opened-prs: ${myPermissions[`max-opened-prs`]}`)
 
-      const {data: issueAss} = await octokit.rest.issues.addAssignees({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        issue_number: issueNumber,
-        assignees: [participantAccountNames[0].substring(1)]
-      })
-      console.log(issueAss)
-      // check for role
-      // check is user can be assigned
-      // assign user
 
+      participantAccountNames.forEach(element => {
+        try {
+          assignIssue(myPermissions, command, element, impDetails, octokit);
+        } catch (error) {
+          console.log(error)
+          core.debug(error as string)
+        }
+      });
       // update label
 
     }
@@ -153,4 +158,10 @@ export type RoleOptions = {
   "max-opened-prs": number,
   "unassign-others": boolean,
   "allowed-labels"?: string[],
+}
+
+export type FilteredContext = {
+  owner: string,
+  repo: string,
+  issueNumber: number
 }
