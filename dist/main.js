@@ -137,9 +137,9 @@ async function run() {
             }
             console.log(`max issues: ${myPermissions['max-assigned-issues']}`);
             console.log(`max-opened-prs: ${myPermissions[`max-opened-prs`]}`);
-            participantAccountNames.forEach(element => {
+            participantAccountNames.forEach((username) => {
                 try {
-                    (0, role_1.assignIssue)(myPermissions, command, element, impDetails, octokit);
+                    (0, role_1.assignIssue)(myPermissions, command, username.substring(1), impDetails, octokit);
                 }
                 catch (error) {
                     console.log(error);

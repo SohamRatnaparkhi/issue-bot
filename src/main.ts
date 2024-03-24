@@ -135,9 +135,9 @@ export async function run(): Promise<void> {
       console.log(`max-opened-prs: ${myPermissions[`max-opened-prs`]}`)
 
 
-      participantAccountNames.forEach(element => {
+      participantAccountNames.forEach((username) => {
         try {
-          assignIssue(myPermissions, command, element, impDetails, octokit);
+          assignIssue(myPermissions, command, username.substring(1), impDetails, octokit);
         } catch (error) {
           console.log(error)
           core.debug(error as string)
