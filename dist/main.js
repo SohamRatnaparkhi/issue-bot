@@ -38,16 +38,6 @@ const js_yaml_1 = __importDefault(require("js-yaml"));
 // type GithubContext = typeof context
 async function run() {
     try {
-        // const ms: string = core.getInput('milliseconds')
-        // // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-        // console.log(`Waiting ${ms} milliseconds ...`)
-        // // Log the current timestamp, wait, then log the new timestamp
-        // console.log(new Date().toTimeString())
-        // await wait(parseInt(ms, 10))
-        // console.log(new Date().toTimeString())
-        // // Set outputs for other workflow steps to use
-        // core.setOutput('time', new Date().toTimeString())
-        // Get the inputs from the workflow file
         console.log('staring the action');
         const token = (0, core_1.getInput)('gh-token');
         const octokit = (0, github_1.getOctokit)(token);
@@ -62,16 +52,17 @@ async function run() {
             if (issueNumber == null) {
                 throw new Error('Issue number is not defined');
             }
-            const res = await octokit.rest.issues.createComment({
-                owner: github_1.context.repo.owner,
-                repo: github_1.context.repo.repo,
-                issue_number: issueNumber,
-                body: `Hello @${commenterId}, you said: ${commentBody} on issue #${issueNumber}!`
-            });
+            // const res = await octokit.rest.issues.createComment({
+            //   owner: context.repo.owner,
+            //   repo: context.repo.repo,
+            //   issue_number: issueNumber,
+            //   body: `Hello @${commenterId}, you said: ${commentBody} on issue #${issueNumber}!`
+            // })
             // get type of comment body followed by params
-            const commentBodyArgs = commentBody.split(' ');
+            const commentBodyArgs = commentBody.trim().split(' ');
             const command = commentBodyArgs[0];
             const participantAccountNames = commentBodyArgs.slice(1);
+            participantAccountNames.forEach((name) => name.trim().substring(1));
             console.log(command);
             console.log(participantAccountNames);
             // check repo status using labels
@@ -103,15 +94,10 @@ async function run() {
             console.log(`Roles config: ${JSON.stringify(rolesConfig)}`);
             // get user role
             const maintainerFilePath = (0, core_1.getInput)('maintainers-config');
-            const { data } = await octokit.rest.repos.getContent({
-                owner: github_1.context.repo.owner,
-                repo: github_1.context.repo.repo,
-                path: maintainerFilePath
-            });
             const owner = github_1.context.repo.owner;
             const repo = github_1.context.repo.repo;
             const path = maintainerFilePath;
-            const { data: data2 } = await octokit.request(`GET /repos/${owner}/${repo}/contents/${path}`, {
+            const { data } = await octokit.request(`GET /repos/${owner}/${repo}/contents/${path}`, {
                 owner: owner,
                 repo: repo,
                 path: path,
@@ -119,9 +105,9 @@ async function run() {
                     'X-GitHub-Api-Version': '2022-11-28'
                 }
             });
-            const fileContent = data2.content; // @ts-ignore 
-            console.log(fileContent);
-            const decodedContent = Buffer.from(fileContent, "base64").toString("binary");
+            const maintainerFileContent = data.content; // @ts-ignore 
+            console.log(maintainerFileContent);
+            const decodedContent = Buffer.from(maintainerFileContent, "base64").toString("binary");
             console.log("Parsed content");
             console.log(decodedContent);
             const parsedContent = js_yaml_1.default.load(decodedContent);
@@ -130,7 +116,7 @@ async function run() {
             for (const key in parsedContent) {
                 const val = parsedContent[key];
                 for (const vals in val) {
-                    participantToRoles[vals] = key;
+                    participantToRoles[val[vals]] = key;
                 }
             }
             console.log(participantAccountNames);
@@ -144,6 +130,7 @@ async function run() {
                 myPermissions = rolesConfig['default'];
             }
             console.log(`max issues: ${myPermissions['max-assigned-issues']}`);
+            console.log(`max-opened-prs: ${myPermissions[`max-opened-prs`]}`);
             const { data: issueAss } = await octokit.rest.issues.addAssignees({
                 owner: github_1.context.repo.owner,
                 repo: github_1.context.repo.repo,

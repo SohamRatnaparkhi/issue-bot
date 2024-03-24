@@ -29,17 +29,19 @@ export async function run(): Promise<void> {
         throw new Error('Issue number is not defined')
       }
 
-      const res = await octokit.rest.issues.createComment({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        issue_number: issueNumber,
-        body: `Hello @${commenterId}, you said: ${commentBody} on issue #${issueNumber}!`
-      })
+      // const res = await octokit.rest.issues.createComment({
+      //   owner: context.repo.owner,
+      //   repo: context.repo.repo,
+      //   issue_number: issueNumber,
+      //   body: `Hello @${commenterId}, you said: ${commentBody} on issue #${issueNumber}!`
+      // })
 
       // get type of comment body followed by params
-      const commentBodyArgs = commentBody.split(' ')
+      const commentBodyArgs = commentBody.trim().split(' ')
       const command = commentBodyArgs[0] as Commands
       const participantAccountNames = commentBodyArgs.slice(1);
+
+      participantAccountNames.forEach((name: string) => name.trim().substring(1))
 
       console.log(command);
       console.log(participantAccountNames)
