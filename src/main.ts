@@ -11,20 +11,6 @@ import jsYaml from 'js-yaml';
 
 export async function run(): Promise<void> {
   try {
-    // const ms: string = core.getInput('milliseconds')
-
-    // // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    // console.log(`Waiting ${ms} milliseconds ...`)
-
-    // // Log the current timestamp, wait, then log the new timestamp
-    // console.log(new Date().toTimeString())
-    // await wait(parseInt(ms, 10))
-    // console.log(new Date().toTimeString())
-
-    // // Set outputs for other workflow steps to use
-    // core.setOutput('time', new Date().toTimeString())
-
-    // Get the inputs from the workflow file
     console.log('staring the action')
     const token = getInput('gh-token')
 
@@ -95,16 +81,11 @@ export async function run(): Promise<void> {
 
       // get user role
       const maintainerFilePath = getInput('maintainers-config');
-      const { data } = await octokit.rest.repos.getContent({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        path: maintainerFilePath
-      })
 
       const owner = context.repo.owner;
       const repo = context.repo.repo;
       const path = maintainerFilePath;
-      const { data: data2 } = await octokit.request(`GET /repos/${owner}/${repo}/contents/${path}`, {
+      const { data } = await octokit.request(`GET /repos/${owner}/${repo}/contents/${path}`, {
         owner: owner,
         repo: repo,
         path: path,
@@ -113,9 +94,9 @@ export async function run(): Promise<void> {
         }
       })
 
-      const fileContent = data2.content // @ts-ignore 
-      console.log(fileContent)
-      const decodedContent = Buffer.from(fileContent, "base64").toString("binary")
+      const maintainerFileContent = data.content // @ts-ignore 
+      console.log(maintainerFileContent)
+      const decodedContent = Buffer.from(maintainerFileContent, "base64").toString("binary")
       console.log("Parsed content")
       console.log(decodedContent)
       const parsedContent = jsYaml.load(decodedContent) as Record<string, string[]>
@@ -125,7 +106,7 @@ export async function run(): Promise<void> {
       for (const key in parsedContent) {
         const val = parsedContent[key]
         for (const vals in val) {
-          participantToRoles[vals] = key;
+          participantToRoles[val[vals]] = key;
         }
       }
 
@@ -142,6 +123,7 @@ export async function run(): Promise<void> {
       }
 
       console.log(`max issues: ${myPermissions['max-assigned-issues']}`)
+      console.log(`max-opened-prs: ${myPermissions[`max-opened-prs`]}`)
 
       const {data: issueAss} = await octokit.rest.issues.addAssignees({
         owner: context.repo.owner,
@@ -166,7 +148,7 @@ export type Commands = '\\assign' | '\\unassign';
 
 export type RoleOptions = {
   "max-assigned-issues": number,
-  "max-opened-issues": number,
+  "max-opened-prs": number,
   "unassign-others": boolean,
   "allowed-labels"?: string[],
 }
