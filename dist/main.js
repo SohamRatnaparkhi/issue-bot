@@ -31,6 +31,7 @@ const core = __importStar(require("@actions/core"));
 const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
 const js_yaml_1 = __importDefault(require("js-yaml"));
+const role_1 = require("./helpers/role");
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -66,10 +67,15 @@ async function run() {
             console.log(command);
             console.log(participantAccountNames);
             // check repo status using labels
-            const labels = await octokit.rest.issues.listLabelsOnIssue({
+            const impDetails = {
                 owner: github_1.context.repo.owner,
                 repo: github_1.context.repo.repo,
-                issue_number: issueNumber
+                issueNumber: issueNumber
+            };
+            const labels = await octokit.rest.issues.listLabelsOnIssue({
+                owner: impDetails.owner,
+                repo: impDetails.repo,
+                issue_number: impDetails.issueNumber
             });
             const labelNames = labels.data.map(label => label.name);
             // check if the issue has the right label
@@ -131,16 +137,15 @@ async function run() {
             }
             console.log(`max issues: ${myPermissions['max-assigned-issues']}`);
             console.log(`max-opened-prs: ${myPermissions[`max-opened-prs`]}`);
-            const { data: issueAss } = await octokit.rest.issues.addAssignees({
-                owner: github_1.context.repo.owner,
-                repo: github_1.context.repo.repo,
-                issue_number: issueNumber,
-                assignees: [participantAccountNames[0].substring(1)]
+            participantAccountNames.forEach(element => {
+                try {
+                    (0, role_1.assignIssue)(myPermissions, command, element, impDetails, octokit);
+                }
+                catch (error) {
+                    console.log(error);
+                    core.debug(error);
+                }
             });
-            console.log(issueAss);
-            // check for role
-            // check is user can be assigned
-            // assign user
             // update label
         }
     }
