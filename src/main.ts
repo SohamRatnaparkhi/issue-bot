@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import { getInput } from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import jsYaml from 'js-yaml';
-import { assignIssue } from './helpers/role';
+import { assignIssue, commentOnRepo } from './helpers/role';
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -39,7 +39,7 @@ export async function run(): Promise<void> {
 
       // get type of comment body followed by params
       const commentBodyArgs = commentBody.trim().split(' ')
-      const command = commentBodyArgs[0] as Commands
+      const command = commentBodyArgs[0].trim().substring(1) as Commands
       const participantAccountNames = commentBodyArgs.slice(1);
 
       participantAccountNames.forEach((name: string) => name.trim().substring(1))
@@ -135,23 +135,31 @@ export async function run(): Promise<void> {
       console.log(`max-opened-prs: ${myPermissions[`max-opened-prs`]}`)
 
 
-      participantAccountNames.forEach((username) => {
+      participantAccountNames.forEach(async (username) => {
         try {
-          assignIssue(myPermissions, command, username.substring(1), impDetails, octokit);
+          const res = await assignIssue(myPermissions, command, username.substring(1), impDetails, octokit);
+          if (res)
+            commentOnRepo(owner, repo, issueNumber, octokit, `Issue assigned to ${username}`)
         } catch (error) {
           console.log(error)
           core.debug(error as string)
+          return;
         }
       });
       // update label
 
+    }
+
+    if (context.eventName === 'pull_request') {
+      console.log('pr event');
+      console.log(context)
     }
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
   }
 }
-export type Commands = '\\assign' | '\\unassign';
+export type Commands = 'assign' | 'unassign';
 
 export type RoleOptions = {
   "max-assigned-issues": number,

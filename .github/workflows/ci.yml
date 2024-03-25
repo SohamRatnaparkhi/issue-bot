@@ -3,6 +3,8 @@ name: Issue Assignment Workflow
 on:
   issue_comment:
     types: [created]
+  pull_request:
+    types: [opened, reopened, closed, converted_to_draft, ready_for_review, review_requested, review_request_removed]
 
 jobs:
   assign-issue:

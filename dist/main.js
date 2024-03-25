@@ -61,7 +61,7 @@ async function run() {
             // })
             // get type of comment body followed by params
             const commentBodyArgs = commentBody.trim().split(' ');
-            const command = commentBodyArgs[0];
+            const command = commentBodyArgs[0].trim().substring(1);
             const participantAccountNames = commentBodyArgs.slice(1);
             participantAccountNames.forEach((name) => name.trim().substring(1));
             console.log(command);
@@ -137,16 +137,23 @@ async function run() {
             }
             console.log(`max issues: ${myPermissions['max-assigned-issues']}`);
             console.log(`max-opened-prs: ${myPermissions[`max-opened-prs`]}`);
-            participantAccountNames.forEach((username) => {
+            participantAccountNames.forEach(async (username) => {
                 try {
-                    (0, role_1.assignIssue)(myPermissions, command, username.substring(1), impDetails, octokit);
+                    const res = await (0, role_1.assignIssue)(myPermissions, command, username.substring(1), impDetails, octokit);
+                    if (res)
+                        (0, role_1.commentOnRepo)(owner, repo, issueNumber, octokit, `Issue assigned to ${username}`);
                 }
                 catch (error) {
                     console.log(error);
                     core.debug(error);
+                    return;
                 }
             });
             // update label
+        }
+        if (github_1.context.eventName === 'pull_request') {
+            console.log('pr event');
+            console.log(github_1.context);
         }
     }
     catch (error) {
