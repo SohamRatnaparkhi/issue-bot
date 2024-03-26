@@ -1,7 +1,7 @@
 import { getOctokit } from "@actions/github";
 import { Commands, FilteredContext, RoleOptions } from "src/main";
 
-export const assignIssue = async (myPermissions: RoleOptions, command: Commands, myUserName: string, filteredData: FilteredContext, octokit: ReturnType<typeof getOctokit>) => {
+export const assignOrUnassignIssue = async (myPermissions: RoleOptions, command: Commands, myUserName: string, filteredData: FilteredContext, octokit: ReturnType<typeof getOctokit>) => {
     // check for role
     // check if user can be assigned
     // assign user
@@ -58,18 +58,20 @@ export function commentOnRepo(owner: string, repo: string, issue_number: number,
 }
 
 async function getTotalIssuesAndPrsByUserAndRepo(myUsername: string, owner: string, repo: string, octokit: ReturnType<typeof getOctokit>) {
-    const repoIssues = await octokit.rest.issues.listForRepo({
+    const repoIssuesAndPrs = await octokit.rest.issues.listForRepo({
         owner,
         repo,
         assignee: myUsername
     })
     let prs = [];
     let issues = [];
-    for (let i = 0; i < repoIssues.data.length; i++) {
-        if (repoIssues.data[i].pull_request)
-            prs.push(repoIssues.data[i]);
-        else
-            issues.push(repoIssues.data[i]);
+    for (let i = 0; i < repoIssuesAndPrs.data.length; i++) {
+        if (repoIssuesAndPrs.data[i].closed_at == null) {
+            if (repoIssuesAndPrs.data[i].pull_request)
+                prs.push(repoIssuesAndPrs.data[i]);
+            else
+                issues.push(repoIssuesAndPrs.data[i]);
+        }
     }
     return {
         prs,

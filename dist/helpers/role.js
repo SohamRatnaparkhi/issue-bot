@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.commentOnRepo = exports.assignIssue = void 0;
-const assignIssue = async (myPermissions, command, myUserName, filteredData, octokit) => {
+exports.commentOnRepo = exports.assignOrUnassignIssue = void 0;
+const assignOrUnassignIssue = async (myPermissions, command, myUserName, filteredData, octokit) => {
     // check for role
     // check if user can be assigned
     // assign user
@@ -45,7 +45,7 @@ const assignIssue = async (myPermissions, command, myUserName, filteredData, oct
         return false;
     }
 };
-exports.assignIssue = assignIssue;
+exports.assignOrUnassignIssue = assignOrUnassignIssue;
 function commentOnRepo(owner, repo, issue_number, octokit, message) {
     octokit.rest.issues.createComment({
         owner,
@@ -56,18 +56,20 @@ function commentOnRepo(owner, repo, issue_number, octokit, message) {
 }
 exports.commentOnRepo = commentOnRepo;
 async function getTotalIssuesAndPrsByUserAndRepo(myUsername, owner, repo, octokit) {
-    const repoIssues = await octokit.rest.issues.listForRepo({
+    const repoIssuesAndPrs = await octokit.rest.issues.listForRepo({
         owner,
         repo,
         assignee: myUsername
     });
     let prs = [];
     let issues = [];
-    for (let i = 0; i < repoIssues.data.length; i++) {
-        if (repoIssues.data[i].pull_request)
-            prs.push(repoIssues.data[i]);
-        else
-            issues.push(repoIssues.data[i]);
+    for (let i = 0; i < repoIssuesAndPrs.data.length; i++) {
+        if (repoIssuesAndPrs.data[i].closed_at == null) {
+            if (repoIssuesAndPrs.data[i].pull_request)
+                prs.push(repoIssuesAndPrs.data[i]);
+            else
+                issues.push(repoIssuesAndPrs.data[i]);
+        }
     }
     return {
         prs,

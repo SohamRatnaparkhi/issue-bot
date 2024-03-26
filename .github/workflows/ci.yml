@@ -11,10 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: npm install
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
       
       - name: Assign Issue
         uses: ./ # Path to your custom action
@@ -24,18 +30,22 @@ jobs:
               max-assigned-issues: 10
               max-opened-prs: 5
               unassign-others: true
+              allowed-labels: "label1,label2,label3,label4"
             maintainer:
               max-assigned-issues: 5
               max-opened-prs: 3
               unassign-others: false
+              allowed-labels: "label3,label4"
             developer:
               max-assigned-issues: 2
               max-opened-prs: 1
               unassign-others: false
+              allowed-labels: "label1,label2"
             default:
               max-assigned-issues: 1
               max-opened-prs: 0
               unassign-others: false
+              allowed-labels: "label1"
           issue-states-inline: |
             ready-for-assignment: help-wanted
             assigned: taken

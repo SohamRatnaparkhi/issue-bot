@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import { getInput } from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import jsYaml from 'js-yaml';
-import { assignIssue, commentOnRepo } from './helpers/role';
+import { assignOrUnassignIssue, commentOnRepo } from './helpers/role';
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -19,7 +19,7 @@ export async function run(): Promise<void> {
     if (octokit == null) {
       throw new Error('Unable to get octokit')
     }
-    console.log('octokit is here')
+    console.log('Octokit is here. Now let\'s get the metadata')
 
     if (context.eventName === 'issue_comment') {
       const issueNumber: number | undefined = context.payload.issue?.number
@@ -40,6 +40,10 @@ export async function run(): Promise<void> {
       // get type of comment body followed by params
       const commentBodyArgs = commentBody.trim().split(' ')
       const command = commentBodyArgs[0].trim().substring(1) as Commands
+      if (command !== 'assign' && command !== 'unassign') {
+        core.debug("Some other comment")
+        return;
+      }
       const participantAccountNames = commentBodyArgs.slice(1);
 
       participantAccountNames.forEach((name: string) => name.trim().substring(1))
@@ -68,8 +72,6 @@ export async function run(): Promise<void> {
       // parse yaml string and convert to object
       const issueStates = jsYaml.load(issueStatesInLine) as Record<string, string>;
 
-      console.log(`Issue states: ${JSON.stringify(issueStates)}`)
-
       const exchangeKeyValueInObject = (obj: Record<string, string>) => {
         const newObj: Record<string, string> = {}
         for (const key in obj) {
@@ -79,20 +81,21 @@ export async function run(): Promise<void> {
       }
 
       const issueStatesReverse = exchangeKeyValueInObject(issueStates)
-      console.log(`Issue states reverse: ${JSON.stringify(issueStatesReverse)}`)
+
       if (!labelNames.includes(issueStatesReverse['help-wanted'])) {
-        console.log(`Issue #${issueNumber} does not have the right label`)
+        core.debug(`Issue #${issueNumber} is in drafting phase`)
+        return;
       }
 
       const roles = getInput('roles-config-inline');
       const rolesConfig = jsYaml.load(roles) as Record<string, RoleOptions>;
       console.log(`Roles config: ${JSON.stringify(rolesConfig)}`);
+      
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
 
       // get user role
       const maintainerFilePath = getInput('maintainers-config');
-
-      const owner = context.repo.owner;
-      const repo = context.repo.repo;
       const path = maintainerFilePath;
       const { data } = await octokit.request(`GET /repos/${owner}/${repo}/contents/${path}`, {
         owner: owner,
@@ -103,13 +106,10 @@ export async function run(): Promise<void> {
         }
       })
 
-      const maintainerFileContent = data.content // @ts-ignore 
+      const maintainerFileContent = data.content
       console.log(maintainerFileContent)
       const decodedContent = Buffer.from(maintainerFileContent, "base64").toString("binary")
-      console.log("Parsed content")
-      console.log(decodedContent)
       const parsedContent = jsYaml.load(decodedContent) as Record<string, string[]>
-      console.log(parsedContent)
 
       const participantToRoles: {[key: string]: string} = {};
       for (const key in parsedContent) {
@@ -119,12 +119,8 @@ export async function run(): Promise<void> {
         }
       }
 
-      console.log(participantAccountNames)
-      console.log(participantToRoles)
-      console.log(participantAccountNames[0].trim().substring(1))
       const myRole = participantToRoles[participantAccountNames[0].trim().substring(1)];
-      // console.log(`Maintainers: ${JSON.stringify(parsedContent)}`)
-      console.log(`My role: ${myRole}`)
+
       let myPermissions = rolesConfig[myRole];
 
       if (myPermissions == null) {
@@ -137,7 +133,7 @@ export async function run(): Promise<void> {
 
       participantAccountNames.forEach(async (username) => {
         try {
-          const res = await assignIssue(myPermissions, command, username.substring(1), impDetails, octokit);
+          const res = await assignOrUnassignIssue(myPermissions, command, username.substring(1), impDetails, octokit);
           if (res)
             commentOnRepo(owner, repo, issueNumber, octokit, `Issue assigned to ${username}`)
         } catch (error) {
@@ -147,19 +143,28 @@ export async function run(): Promise<void> {
         }
       });
       // update label
-
+      await octokit.request(`POST /repos/${owner}/${repo}/issues/${issueNumber}/labels`, {
+        owner: owner,
+        repo: repo,
+        issue_number: issueNumber,
+        labels: [...labelNames, issueStatesReverse['done']],
+        headers: {
+          'X-GitHub-Api-Version': '2022-11-28'
+        }
+      })
     }
 
     if (context.eventName === 'pull_request') {
       console.log('pr event');
       console.log(context)
+      // in pr body, find #
+      // update issue labels accordingly
     }
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
   }
 }
-export type Commands = 'assign' | 'unassign';
 
 export type RoleOptions = {
   "max-assigned-issues": number,
@@ -167,6 +172,8 @@ export type RoleOptions = {
   "unassign-others": boolean,
   "allowed-labels"?: string[],
 }
+
+export type Commands = 'assign' | 'unassign';
 
 export type FilteredContext = {
   owner: string,

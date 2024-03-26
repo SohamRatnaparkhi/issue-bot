@@ -1,3 +1,11 @@
 admin:
-  - SohamRatnaparkhi
-  - ShubhamPatil
+  - User1
+  - User2
+
+maintainer:
+  - User3
+  - User4
+
+developer:
+  - User5
+  - User6

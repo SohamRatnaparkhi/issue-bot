@@ -1,0 +1,26 @@
+.
+├── action.yml
+├── badges
+│   └── coverage.svg
+├── CODEOWNERS
+├── gitkeep
+├── LICENSE
+├── maintainers.yml
+├── package.json
+├── package-lock.json
+├── README.md
+├── script
+│   └── release
+├── src
+│   ├── helpers
+│   │   └── role.ts
+│   ├── index.ts
+│   ├── main.ts
+│   └── wait.ts
+├── __tests__
+│   ├── index.test.ts
+│   ├── main.test.ts
+│   └── wait.test.ts
+└── tsconfig.json
+
+5 directories, 18 files
