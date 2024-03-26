@@ -1,40 +1,33 @@
 name: 'Issue-Assigner Bot'
-description:
-  'Automatically assigns issues to users based on issue comments and
-  configurable rules.'
-author: 'Soham Ratnaparkhi'
+description: 'Automates rule-based assignment of issues to users based on comments'
+author: 'SohamRatnaparkhi'
 
 branding:
-  icon: 'heart'
-  color: 'red'
+  icon: 'git-pull-request'
+  color: 'blue'
 
 inputs:
   roles-config-inline:
-    description:
-      'Inline YAML string defining roles and rules. Will be used if config-path
-      is not provided.'
+    description: 'Inline YAML string for defining roles and their rules.'
     required: false
-  config-path:
-    description:
-      'Optional: Path to an external YAML configuration file defining roles,
-      rules, and states. Overrides roles-config-inline if provided.'
+  roles-config-path:
+    description: 'Path to an external YAML file with roles and their rules.'
     required: false
     default: ''
   issue-states-inline:
-    description:
-      'Inline YAML string defining the issue states and corresponding labels.'
+    description: 'Inline YAML string for defining issue states and corresponding labels.'
     required: true
   maintainers-config:
     description: 'Path to the maintainers configuration file.'
     required: true
     default: 'maintainers.yml'
   gh-token:
-    description: 'GitHub token with permissions to manage issues and assignees.'
+    description: 'GitHub token for authentication purposes.'
     required: true
 
 outputs:
   assignment-status:
-    description: 'Status of the issue assignment process.'
+    description: 'Provides the status of the issue assignment process.'
 
 runs:
   using: 'node20'

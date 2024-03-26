@@ -45,7 +45,7 @@ async function run() {
         if (octokit == null) {
             throw new Error('Unable to get octokit');
         }
-        console.log('octokit is here');
+        console.log('Octokit is here. Now let\'s get the metadata');
         if (github_1.context.eventName === 'issue_comment') {
             const issueNumber = github_1.context.payload.issue?.number;
             const commenterId = github_1.context.payload['comment']?.['user']?.['login'] ?? '';
@@ -62,6 +62,10 @@ async function run() {
             // get type of comment body followed by params
             const commentBodyArgs = commentBody.trim().split(' ');
             const command = commentBodyArgs[0].trim().substring(1);
+            if (command !== 'assign' && command !== 'unassign') {
+                core.debug("Some other comment");
+                return;
+            }
             const participantAccountNames = commentBodyArgs.slice(1);
             participantAccountNames.forEach((name) => name.trim().substring(1));
             console.log(command);
@@ -82,7 +86,6 @@ async function run() {
             const issueStatesInLine = (0, core_1.getInput)('issue-states-inline');
             // parse yaml string and convert to object
             const issueStates = js_yaml_1.default.load(issueStatesInLine);
-            console.log(`Issue states: ${JSON.stringify(issueStates)}`);
             const exchangeKeyValueInObject = (obj) => {
                 const newObj = {};
                 for (const key in obj) {
@@ -91,17 +94,17 @@ async function run() {
                 return newObj;
             };
             const issueStatesReverse = exchangeKeyValueInObject(issueStates);
-            console.log(`Issue states reverse: ${JSON.stringify(issueStatesReverse)}`);
             if (!labelNames.includes(issueStatesReverse['help-wanted'])) {
-                console.log(`Issue #${issueNumber} does not have the right label`);
+                core.debug(`Issue #${issueNumber} is in drafting phase`);
+                return;
             }
             const roles = (0, core_1.getInput)('roles-config-inline');
             const rolesConfig = js_yaml_1.default.load(roles);
             console.log(`Roles config: ${JSON.stringify(rolesConfig)}`);
-            // get user role
-            const maintainerFilePath = (0, core_1.getInput)('maintainers-config');
             const owner = github_1.context.repo.owner;
             const repo = github_1.context.repo.repo;
+            // get user role
+            const maintainerFilePath = (0, core_1.getInput)('maintainers-config');
             const path = maintainerFilePath;
             const { data } = await octokit.request(`GET /repos/${owner}/${repo}/contents/${path}`, {
                 owner: owner,
@@ -111,13 +114,10 @@ async function run() {
                     'X-GitHub-Api-Version': '2022-11-28'
                 }
             });
-            const maintainerFileContent = data.content; // @ts-ignore 
+            const maintainerFileContent = data.content;
             console.log(maintainerFileContent);
             const decodedContent = Buffer.from(maintainerFileContent, "base64").toString("binary");
-            console.log("Parsed content");
-            console.log(decodedContent);
             const parsedContent = js_yaml_1.default.load(decodedContent);
-            console.log(parsedContent);
             const participantToRoles = {};
             for (const key in parsedContent) {
                 const val = parsedContent[key];
@@ -125,12 +125,7 @@ async function run() {
                     participantToRoles[val[vals]] = key;
                 }
             }
-            console.log(participantAccountNames);
-            console.log(participantToRoles);
-            console.log(participantAccountNames[0].trim().substring(1));
             const myRole = participantToRoles[participantAccountNames[0].trim().substring(1)];
-            // console.log(`Maintainers: ${JSON.stringify(parsedContent)}`)
-            console.log(`My role: ${myRole}`);
             let myPermissions = rolesConfig[myRole];
             if (myPermissions == null) {
                 myPermissions = rolesConfig['default'];
@@ -139,7 +134,7 @@ async function run() {
             console.log(`max-opened-prs: ${myPermissions[`max-opened-prs`]}`);
             participantAccountNames.forEach(async (username) => {
                 try {
-                    const res = await (0, role_1.assignIssue)(myPermissions, command, username.substring(1), impDetails, octokit);
+                    const res = await (0, role_1.assignOrUnassignIssue)(myPermissions, command, username.substring(1), impDetails, octokit);
                     if (res)
                         (0, role_1.commentOnRepo)(owner, repo, issueNumber, octokit, `Issue assigned to ${username}`);
                 }
@@ -150,10 +145,21 @@ async function run() {
                 }
             });
             // update label
+            await octokit.request(`POST /repos/${owner}/${repo}/issues/${issueNumber}/labels`, {
+                owner: owner,
+                repo: repo,
+                issue_number: issueNumber,
+                labels: [...labelNames, issueStatesReverse['done']],
+                headers: {
+                    'X-GitHub-Api-Version': '2022-11-28'
+                }
+            });
         }
         if (github_1.context.eventName === 'pull_request') {
             console.log('pr event');
             console.log(github_1.context);
+            // in pr body, find #
+            // update issue labels accordingly
         }
     }
     catch (error) {
