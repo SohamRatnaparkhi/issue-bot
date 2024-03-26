@@ -24,6 +24,7 @@ const assignOrUnassignIssue = async (myPermissions, command, myUserName, filtere
                 issue_number: issueNumber,
                 assignees: [myUserName]
             });
+            commentOnRepo(owner, repo, issueNumber, octokit, `@${myUserName}, you have been assigned to the issue`);
             return true;
         }
         catch (error) {

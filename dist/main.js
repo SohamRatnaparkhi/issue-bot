@@ -94,8 +94,10 @@ async function run() {
                 return newObj;
             };
             const issueStatesReverse = exchangeKeyValueInObject(issueStates);
+            console.log(issueStatesReverse);
             if (!labelNames.includes(issueStatesReverse['help-wanted'])) {
                 core.debug(`Issue #${issueNumber} is in drafting phase`);
+                (0, role_1.commentOnRepo)(impDetails.owner, impDetails.repo, issueNumber, octokit, `Issue is in drafting phase`);
                 return;
             }
             const roles = (0, core_1.getInput)('roles-config-inline');

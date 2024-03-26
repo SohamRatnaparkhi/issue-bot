@@ -81,9 +81,11 @@ export async function run(): Promise<void> {
       }
 
       const issueStatesReverse = exchangeKeyValueInObject(issueStates)
+      console.log(issueStatesReverse)
 
       if (!labelNames.includes(issueStatesReverse['help-wanted'])) {
         core.debug(`Issue #${issueNumber} is in drafting phase`)
+        commentOnRepo(impDetails.owner, impDetails.repo, issueNumber, octokit, `Issue is in drafting phase`)
         return;
       }
 
@@ -91,8 +93,8 @@ export async function run(): Promise<void> {
       const rolesConfig = jsYaml.load(roles) as Record<string, RoleOptions>;
       console.log(`Roles config: ${JSON.stringify(rolesConfig)}`);
       
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
+      const owner = context.repo.owner;
+      const repo = context.repo.repo;
 
       // get user role
       const maintainerFilePath = getInput('maintainers-config');

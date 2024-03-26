@@ -27,6 +27,8 @@ export const assignOrUnassignIssue = async (myPermissions: RoleOptions, command:
                 issue_number: issueNumber,
                 assignees: [myUserName]
             })
+
+            commentOnRepo(owner, repo, issueNumber, octokit, `@${myUserName}, you have been assigned to the issue`)
             return true;
         } catch (error) {
             console.log(error)
